@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: fct_daily_returns
+    description: One row per ticker per trading day with the close, previous close and simple daily return.
+    columns:
+      - name: price_date
+        description: Trading date.
+        data_tests:
+          - not_null
+      - name: ticker
+        description: Upper-case ticker symbol.
+        data_tests:
+          - not_null
+      - name: close
+        description: Adjusted closing price.
+      - name: prev_close
+        description: Previous trading day close for the same ticker. Null on the first day.
+      - name: daily_return
+        description: close / prev_close - 1. Null on the first day per ticker.
+
+  - name: fct_price_stats
+    description: Daily price statistics per ticker, including a 20-day moving average and 20-day volatility.
+    columns:
+      - name: price_date
+        description: Trading date.
+        data_tests:
+          - not_null
+      - name: ticker
+        description: Upper-case ticker symbol.
+        data_tests:
+          - not_null
+      - name: ma_20
+        description: 20-day moving average of close. Null until 20 observations exist.
+      - name: vol_20d
+        description: Sample standard deviation of daily returns over 20 days. Null until 20 observations exist.
+      - name: vol_20d_annualised
+        description: vol_20d multiplied by sqrt(252) trading days.
