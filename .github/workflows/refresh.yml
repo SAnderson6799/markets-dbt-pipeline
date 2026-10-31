@@ -39,7 +39,7 @@ jobs:
       - name: dbt test
         timeout-minutes: 3
         working-directory: markets_dbt_pipeline
-        run: dbt test --profiles-dir ../ci --debug
+        run: dbt test --profiles-dir ../ci
 
       - name: Commit updated prices
         run: |
