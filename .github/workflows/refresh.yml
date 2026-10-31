@@ -11,6 +11,7 @@ permissions:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -22,14 +23,23 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Fetch prices
+        timeout-minutes: 3
         run: python scripts/fetch_prices.py
 
-      - name: Build and test dbt project
+      - name: dbt seed
+        timeout-minutes: 3
         working-directory: markets_dbt_pipeline
-        run: |
-          dbt seed --profiles-dir ../ci
-          dbt run --profiles-dir ../ci
-          dbt test --profiles-dir ../ci
+        run: dbt seed --profiles-dir ../ci
+
+      - name: dbt run
+        timeout-minutes: 3
+        working-directory: markets_dbt_pipeline
+        run: dbt run --profiles-dir ../ci
+
+      - name: dbt test
+        timeout-minutes: 3
+        working-directory: markets_dbt_pipeline
+        run: dbt test --profiles-dir ../ci --debug
 
       - name: Commit updated prices
         run: |
