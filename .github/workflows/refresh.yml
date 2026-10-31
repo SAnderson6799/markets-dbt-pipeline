@@ -1,0 +1,40 @@
+name: Refresh prices
+
+on:
+  schedule:
+    - cron: "0 22 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch prices
+        run: python scripts/fetch_prices.py
+
+      - name: Build and test dbt project
+        working-directory: markets_dbt_pipeline
+        run: |
+          dbt seed --profiles-dir ../ci
+          dbt run --profiles-dir ../ci
+          dbt test --profiles-dir ../ci
+
+      - name: Commit updated prices
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add markets_dbt_pipeline/seeds/raw_prices.csv
+          git diff --staged --quiet || git commit -m "Update prices"
+          git push
