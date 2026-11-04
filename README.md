@@ -46,3 +46,21 @@ An end-to-end analytics engineering project. It pulls daily prices from Yahoo Fi
 
 - Yahoo Finance is an unofficial source, fine for a personal project but not production
 - Next: a dashboard (Looker Studio or Tableau Public), correlation between tickers, source freshness checks
+
+## Statistical analysis
+
+**Question:** do daily returns differ on days after a down day compared with days after an up day?
+
+**Method:** for each ticker (AAPL, MSFT, SPY), I split daily returns from the `fct_price_stats` mart model by whether the previous day's return was negative. The groups were compared with Welch's t-test (unequal variances), the Mann-Whitney U test (no normality assumption) and a bootstrap 95% confidence interval (5,000 resamples) for the difference in means. Cohen's d gives the effect size, and Welch p-values are Bonferroni-adjusted for the three tickers tested. Code: `analysis/returns_test.py`.
+
+**Results** (difference = after a down day minus after an up day, in percentage points):
+
+| Ticker | Days after down / up | Mean difference | 95% CI | Cohen's d | Welch p | Adjusted p |
+|--------|----------------------|-----------------|--------|-----------|---------|------------|
+| AAPL | 230 / 269 | +0.03 | -0.29 to +0.36 | 0.02 | 0.845 | 1.00 |
+| MSFT | 237 / 262 | -0.01 | -0.31 to +0.32 | -0.003 | 0.972 | 1.00 |
+| SPY | 224 / 275 | +0.09 | -0.09 to +0.28 | 0.085 | 0.365 | 1.00 |
+
+**Conclusion:** there is no evidence that returns differ after down days versus up days for any of the three tickers. The confidence intervals all include zero and the effect sizes are negligible. This does not prove there is no difference: with about 225-275 days per group, differences of up to roughly 0.3 percentage points per day cannot be ruled out.
+
+**Limitations:** this is an observational comparison, not an A/B test, because there is no randomisation or intervention. The sample covers about two years, and the tickers are not independent of each other (SPY tracks the broad market), so the Bonferroni correction is conservative.
